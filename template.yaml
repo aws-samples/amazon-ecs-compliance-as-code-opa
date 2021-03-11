@@ -20,6 +20,7 @@ Resources:
       Environment:
         Variables:
           SNS_TOPIC_ARN: !Ref DevSecOpsTeamNotificationTopic
+          SSM_PARAMETER: !Ref opapolicy
       Tracing: Active # https://docs.aws.amazon.com/lambda/latest/dg/lambda-x-ray.html
       Policies:
       - AWSXrayWriteOnlyAccess
@@ -27,6 +28,9 @@ Resources:
       - SNSPublishMessagePolicy:
           TopicName: 
             !Ref DevSecOpsTeamNotificationTopic
+      - SSMParameterReadPolicy:
+          ParameterName:
+            !Ref opapolicy
       - Statement:
         - Sid: ECSTaskPolicy
           Effect: Allow
@@ -85,3 +89,11 @@ Resources:
               AWS: !Sub 'arn:aws:iam::${AWS::AccountId}:root' 
             Resource: '*'
       EnableKeyRotation: true
+  opapolicy:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Type: String
+      Value: !Sub "package ecstaskstatuswatcher\n\ndefault allow = false\n\nallow =true {\n    not any_non_approved_container_registry\n}\n\nany_non_approved_container_registry {\n    some i\n    input.containers[i]\n    not startswith(input.containers[i].image, \"${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com\") \n}"
+      Description: OPA Policy
+      Name: opa-policy
+      Tier: Advanced

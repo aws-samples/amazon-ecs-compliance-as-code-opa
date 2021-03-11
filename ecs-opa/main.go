@@ -15,7 +15,7 @@
  * OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
  * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
- 
+
 package main
 
 import (
@@ -29,6 +29,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/ecs"
 	"github.com/aws/aws-sdk-go/service/sns"
+	"github.com/aws/aws-sdk-go/service/ssm"
 	"github.com/aws/aws-sdk-go/service/sts"
 	"github.com/open-policy-agent/opa/ast"
 	"github.com/open-policy-agent/opa/rego"
@@ -104,23 +105,18 @@ func evaluateRules(input interface{}, accountId string) (rego.ResultSet, error) 
 
 	ctx := context.Background()
 
-	var region = os.Getenv("AWS_REGION")
+	// var region = os.Getenv("AWS_REGION")
 
-	module = `
-		package ecstaskstatuswatcher
-		
-		default allow = false
-		
-		allow =true {
-		    not any_non_approved_container_registry
-		}
-		
-		any_non_approved_container_registry {
-		    some i
-		    input.containers[i]
-		    not startswith(input.containers[i].image, "` + accountId + `.dkr.ecr.` + region + `.amazonaws.com") 
-		}
-	`
+	mySession := session.Must(session.NewSession())
+	var svc = ssm.New(mySession)
+
+	var ssmParamName = os.Getenv("SSM_PARAMETER")
+	getParameterInput := ssm.GetParameterInput{Name: aws.String(ssmParamName)}
+	if getParameterOutput, getParameterError := svc.GetParameter(&getParameterInput); getParameterError != nil {
+		log.Fatal("Error getting parameter")
+	} else {
+		module = aws.StringValue(getParameterOutput.Parameter.Value)
+	}
 
 	// Compile the module. The keys are used as identifiers in error messages.
 	compiler, err := ast.CompileModules(map[string]string{
@@ -292,7 +288,7 @@ func getAccountId() string {
 	result, err := svc.GetCallerIdentity(input)
 	if err != nil {
 		if aerr, ok := err.(awserr.Error); ok {
-				fmt.Println(aerr.Error())
+			fmt.Println(aerr.Error())
 		} else {
 			fmt.Println(err.Error())
 		}
