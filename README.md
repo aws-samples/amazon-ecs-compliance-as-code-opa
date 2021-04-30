@@ -1,11 +1,8 @@
-## My Project
+# Compliance as Code for Amazon ECS using Open Policy Agent
 
-TODO: Fill this README out!
+This repository illustrates a way to implement Compliance as Code practices for [Amazon Elastic Container Service (Amazon ECS)](https://aws.amazon.com/ecs/?whats-new-cards.sort-by=item.additionalFields.postDateTime&whats-new-cards.sort-order=desc&ecs-blogs.sort-by=item.additionalFields.createdDate&ecs-blogs.sort-order=desc) using [Open Policy Agent (OPA)](https://www.openpolicyagent.org/) 
 
-Be sure to:
-
-* Change the title in this README
-* Edit your repository description on GitHub
+Details on the arhitecture, compliance use case implemented, installation and verification details are found in the blog [Compliance as Code for Amazon ECS using Open Policy Agent, Amazon EventBridge, and AWS Lambda](https://aws.amazon.com/blogs/containers/compliance-as-code-for-amazon-ecs-using-open-policy-agent-amazon-eventbridge-and-aws-lambda/)
 
 ## Security
 
